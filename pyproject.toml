@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dataminer"
+version = "0.1.0"
+description = "A professional web scraping toolkit for extracting e-commerce product data and exporting to CSV, JSON, and beautifully formatted Excel files."
+authors = [
+    {name = "DataMiner", email = "dev@dataminer.dev"},
+]
+requires-python = ">=3.14"
+dependencies = [
+    "playwright>=1.52",
+    "beautifulsoup4>=4.13",
+    "pandas>=2.2",
+    "openpyxl>=3.1",
+    "rich>=13.9",
+    "typer>=0.15",
+    "httpx>=0.28",
+    "lxml>=5.3",
+]
+
+[project.scripts]
+dataminer = "main:app"
+
+[tool.uv]
+package = true
+
+[tool.setuptools.packages.find]
+exclude = ["tests*", "output*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
