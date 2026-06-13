@@ -181,9 +181,3 @@ class MyScraper(BaseScraper):
         # Your scraping logic here
         return products
 ```
-
-## 📸 Screenshots
-
-| CLI Output | Excel Output |
-|------------|--------------|
-| *(screenshot placeholder)* | *(screenshot placeholder)* |
