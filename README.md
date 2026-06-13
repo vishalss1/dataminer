@@ -14,7 +14,7 @@
 
 ## ✨ Features
 
-- **Multi-source scraping** — BooksToScrape, generic e-commerce pages (Playwright-powered), Amazon template
+- **Multi-source scraping** — BooksToScrape, generic e-commerce pages (Playwright-powered), eBay product search
 - **Multiple export formats** — CSV, JSON, and **professionally formatted Excel** (.xlsx) with styling
 - **Beautiful CLI** — Rich-powered progress bars, colored output, and interactive tables
 - **Extensible architecture** — Abstract base scraper makes adding new sources trivial
@@ -64,13 +64,22 @@ python main.py generic https://books.toscrape.com
 python main.py generic https://example-store.com/products
 ```
 
-### Amazon search (template)
+### Search eBay products
 
 ```bash
-python main.py amazon "wireless mouse"
+python main.py ebay "wireless mouse"
+python main.py ebay "gaming keyboard"
 ```
 
-> **Note:** Amazon requires a proxy service or API due to anti-bot measures. See `scrapers/amazon_scraper.py` for details.
+Extracted fields:
+- Product name
+- Price
+- Shipping cost
+- Condition
+- Rating (if available)
+- Review count (if available)
+- Product URL
+- Image URL
 
 ### Display project info
 
@@ -86,7 +95,7 @@ dataminer/
 │   ├── base_scraper.py       # Abstract base class
 │   ├── books_scraper.py      # BooksToScrape implementation
 │   ├── generic_scraper.py    # Playwright-powered generic scraper
-│   └── amazon_scraper.py     # Amazon template
+│   └── ebay_scraper.py       # eBay product search
 ├── exporters/
 │   ├── csv_exporter.py       # CSV export
 │   ├── json_exporter.py      # JSON export
@@ -144,7 +153,7 @@ CLI (Typer)
   ├── Scraper (BaseScraper ABC)
   │     ├── BooksScraper    (httpx + BeautifulSoup)
   │     ├── GenericScraper  (Playwright + BeautifulSoup)
-  │     └── AmazonScraper   (template)
+  │     └── EbayScraper     (Playwright + BeautifulSoup)
   │
   ├── Product model (dataclass)
   │

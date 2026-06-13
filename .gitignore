@@ -29,6 +29,9 @@ output/*.db
 # Logs
 *.log
 
+# Debug
+debug/*.html
+
 # Environment
 .env
 .env.*

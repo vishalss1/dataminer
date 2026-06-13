@@ -10,7 +10,7 @@ from rich.panel import Panel
 
 from scrapers.books_scraper import BooksScraper
 from scrapers.generic_scraper import GenericScraper
-from scrapers.amazon_scraper import AmazonScraper
+from scrapers.ebay_scraper import EbayScraper
 from scrapers.base_scraper import ScrapeError
 from exporters.csv_exporter import CSVExporter
 from exporters.json_exporter import JSONExporter
@@ -48,6 +48,11 @@ def _export(products, prefix: str = "products", currency: str = "USD"):
     return files
 
 
+def _sanitize(text: str, max_len: int = 60) -> str:
+    text = text.encode("ascii", errors="replace").decode("ascii")
+    return (text[:max_len] + "...") if len(text) > max_len else text
+
+
 def _show_results(products):
     table = Table(title=f"Scraped {len(products)} Products", title_style="bold blue")
     table.add_column("#", style="dim", width=4)
@@ -57,9 +62,9 @@ def _show_results(products):
     table.add_column("Availability", width=14)
 
     for i, p in enumerate(products[:20], 1):
-        name = (p.name[:60] + "...") if len(p.name) > 60 else p.name
-        rating = f"{p.rating:.1f}" if p.rating is not None else "—"
-        table.add_row(str(i), name, p.formatted_price, rating, p.availability)
+        name = _sanitize(p.name)
+        rating = f"{p.rating:.1f}" if p.rating is not None else "-"
+        table.add_row(str(i), name, p.formatted_price, rating, _sanitize(p.availability, 40))
 
     if len(products) > 20:
         table.add_row(
@@ -129,27 +134,29 @@ def generic(
 
 
 @app.command()
-def amazon(
-    search: str = typer.Argument(..., help="Search term for Amazon products"),
+def ebay(
+    search: str = typer.Argument(..., help="Search term for eBay products"),
     currency: str = typer.Option("USD", "--currency", "-c", help="Currency code"),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Save debug HTML to debug/ folder"),
 ):
-    """Scrape Amazon search results (template — requires proxy/API)"""
-    scraper = AmazonScraper(search)
-    try:
-        products = asyncio.run(scraper.scrape())
-    except Exception as e:
-        rprint(f"[bold red]Error:[/bold red] {e}")
-        raise typer.Exit(1)
+    """Scrape product data from eBay search results"""
+    with console.status("[bold blue]Searching eBay...") as _:
+        scraper = EbayScraper(search, debug=debug)
+        try:
+            products = asyncio.run(scraper.scrape())
+        except ScrapeError as e:
+            rprint(f"[bold red]Scrape Error:[/bold red] {e}")
+            raise typer.Exit(1)
+        except Exception as e:
+            rprint(f"[bold red]Unexpected Error:[/bold red] {e}")
+            raise typer.Exit(1)
 
     if not products:
-        rprint(
-            "[yellow]Amazon scraping requires a proxy service or API. "
-            "See scrapers/amazon_scraper.py for details.[/yellow]"
-        )
+        rprint("[yellow]No products found for the given search term.[/yellow]")
         raise typer.Exit()
 
     _show_results(products)
-    files = _export(products, prefix="amazon", currency=currency)
+    files = _export(products, prefix="ebay", currency=currency)
     _print_file_summary(files)
 
 
@@ -162,7 +169,7 @@ def info():
         "[bold]Commands:[/bold]\n"
         "  [cyan]books[/cyan]     Scrape books.toscrape.com\n"
         "  [cyan]generic[/cyan]   Scrape any e-commerce page via Playwright\n"
-        "  [cyan]amazon[/cyan]    Amazon search (template)\n\n"
+        "  [cyan]ebay[/cyan]      Search eBay products\n\n"
         "[bold]Output:[/bold] CSV, JSON, and professionally formatted Excel files.",
         title="DataMiner",
         border_style="blue",
